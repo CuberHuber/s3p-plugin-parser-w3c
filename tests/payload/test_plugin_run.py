@@ -2,7 +2,6 @@ import datetime
 import importlib.util
 import os
 from typing import Type
-import sys
 
 import pytest
 from pathlib import Path
@@ -58,8 +57,8 @@ class TestPayloadRun:
 
     def run_payload(self, payload: Type[S3PParserBase], driver: WebDriver, refer: S3PRefer, max_document: int,
                     timeout: int = 2):
-        from src.s3_platform_plugin_template.template_payload import MyTemplateParser
-        if isinstance(payload, type(MyTemplateParser)):
+        from src.s3_platform_plugin_template.w3c import W3C
+        if isinstance(payload, type(W3C)):
             _payload = payload(refer=refer, web_driver=driver, max_count_documents=max_document, last_document=None)
 
             @execute_timeout(timeout)
@@ -70,19 +69,21 @@ class TestPayloadRun:
         else:
             assert False, "Тест проверяет payload плагина"
 
-    def test_run_with_0_docs_restriction(self, chrome_driver, fix_s3pRefer, fix_payload):
+    def test_run_with_10_docs_restriction(self, chrome_driver, fix_s3pRefer, fix_payload):
         max_docs = 10
-        docs = self.run_payload(fix_payload, chrome_driver, fix_s3pRefer, max_docs)
-        assert len(docs) <= max_docs
+        docs = self.run_payload(fix_payload, chrome_driver, fix_s3pRefer, max_docs, 200)
+        assert len(docs) == max_docs
 
     def test_return_types(self, chrome_driver, fix_s3pRefer, fix_payload):
         max_docs = 10
-        docs = self.run_payload(fix_payload, chrome_driver, fix_s3pRefer, max_docs)
+        docs = self.run_payload(fix_payload, chrome_driver, fix_s3pRefer, max_docs, 200)
+        assert len(docs) == max_docs
         assert isinstance(docs, tuple) and all([isinstance(el, S3PDocument) for el in docs])
 
     def test_returned_parameters_are_sufficient(self, chrome_driver, fix_s3pRefer, fix_payload):
         max_docs = 10
-        docs = self.run_payload(fix_payload, chrome_driver, fix_s3pRefer, max_docs)
+        docs = self.run_payload(fix_payload, chrome_driver, fix_s3pRefer, max_docs, 200)
+        assert len(docs) == max_docs
         for el in docs:
             assert el.title is not None and isinstance(el.title, str)
             assert el.link is not None and isinstance(el.link, str)
