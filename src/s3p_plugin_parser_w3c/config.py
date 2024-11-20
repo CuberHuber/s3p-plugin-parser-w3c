@@ -16,15 +16,15 @@ from s3p_sdk.module import (
 
 config = PluginConfig(
     plugin=CoreConfig(
-        reference='w3c',
-        type=SOURCE,
-        files=['w3c.py', ],
+        reference='w3c',         # уникальное имя источника
+        type=SOURCE,                            # Тип источника (SOURCE, ML, PIPELINE)
+        files=['w3c.py', ],        # Список файлов, которые будут использоваться в плагине (эти файлы будут сохраняться в платформе)
         is_localstorage=False
     ),
     task=TaskConfig(
         trigger=trigger.TriggerConfig(
             type=trigger.SCHEDULE,
-            interval=datetime.timedelta(days=1),
+            interval=datetime.timedelta(days=1),    # Интервал перезапуска плагина
         )
     ),
     middleware=MiddlewareConfig(
@@ -36,8 +36,8 @@ config = PluginConfig(
         bus=None,
     ),
     payload=payload.PayloadConfig(
-        file='w3c.py',
-        classname='W3C',
+        file='w3c.py',                 # python файл плагина (точка входа). Этот файл должен быть указан в `plugin.files[*]`
+        classname='W3C',               # имя python класса в указанном файле
         entry=payload.entry.EntryConfig(
             method='content',
             params=[
