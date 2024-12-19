@@ -21,9 +21,9 @@ config = PluginConfig(
         files=['w3c.py', ],        # Список файлов, которые будут использоваться в плагине (эти файлы будут сохраняться в платформе)
         is_localstorage=False,
         restrictions=RestrictionsConfig(
-            maximum_materials=50,
+            maximum_materials=None,
             to_last_material=None,
-            from_date=None,
+            from_date=datetime.datetime(2024, 8, 1),
             to_date=None,
         )
     ),
@@ -36,8 +36,7 @@ config = PluginConfig(
     middleware=MiddlewareConfig(
         modules=[
             modules.TimezoneSafeControlConfig(order=1, is_critical=True),
-            modules.FilterOnlyNewDocumentWithDB(order=2, is_critical=True),
-            modules.SaveDocument(order=3, is_critical=True),
+            modules.SaveOnlyNewDocuments(order=2, is_critical=True),
         ],
         bus=None,
     ),
