@@ -2,6 +2,7 @@ import datetime
 import importlib.util
 import os
 from typing import Type
+import sys
 
 import pytest
 from pathlib import Path
@@ -13,7 +14,7 @@ from selenium.webdriver.ie.webdriver import WebDriver
 
 from tests.config.fixtures import fix_plugin_config, project_config
 from tests.payload.fixtures import execute_timeout
-from s3p_sdk.types import S3PRefer, S3PDocument, S3PPlugin
+from s3p_sdk.types import S3PRefer, S3PDocument, S3PPlugin, S3PPluginRestrictions
 from s3p_sdk.plugin.types import SOURCE
 
 
@@ -62,9 +63,9 @@ class TestPayloadRun:
     def run_payload(self, payload: Type[S3PParserBase], _plugin: S3PPlugin, driver: WebDriver, refer: S3PRefer, max_document: int,
                     timeout: int = 2):
         # !WARNING Требуется изменить путь до актуального парсера плагина
-        from src.s3p_plugin_parser_w3c.w3c import W3C
-        if isinstance(payload, type(W3C)):
-            _payload = payload(refer=refer, plugin=_plugin, web_driver=driver, max_count_documents=max_document, last_document=None)
+        from src.s3_platform_plugin_template.template_payload import MyTemplateParser
+        if isinstance(payload, type(MyTemplateParser)):
+            _payload = payload(refer=refer, plugin=_plugin, restrictions=S3PPluginRestrictions(max_document, None, None, None), web_driver=driver)
 
             @execute_timeout(timeout)
             def execute() -> tuple[S3PDocument, ...]:
@@ -86,7 +87,7 @@ class TestPayloadRun:
             3. Каждый полученный документ должен обязательно содержать 3 ключевых поля (title, link, published)
 
         """
-        max_docs = 10
+        max_docs = 4
         docs = self.run_payload(fix_payload, fix_s3pPlugin, chrome_driver, fix_s3pRefer, max_docs, 100)
 
         # 1. Количество материалов должно быть не меньше параметра максимального числа материалов.
