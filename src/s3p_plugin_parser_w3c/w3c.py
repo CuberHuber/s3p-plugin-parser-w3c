@@ -1,8 +1,10 @@
 import datetime
 import time
 
+from s3p_sdk.exceptions.parser import S3PPluginParserOutOfRestrictionException, S3PPluginParserFinish
 from s3p_sdk.plugin.payloads.parsers import S3PParserBase
-from s3p_sdk.types import S3PRefer, S3PDocument, S3PPlugin
+from s3p_sdk.types import S3PRefer, S3PDocument, S3PPlugin, S3PPluginRestrictions
+from s3p_sdk.types.plugin_restrictions import FROM_DATE
 from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
@@ -26,9 +28,8 @@ class W3C(S3PParserBase):
     _content_document: list[S3PDocument]
     HOST = 'https://www.w3.org/TR/'
 
-    def __init__(self, refer: S3PRefer, plugin: S3PPlugin, web_driver: WebDriver, max_count_documents: int = None,
-                 last_document: S3PDocument = None):
-        super().__init__(refer, plugin, max_count_documents, last_document)
+    def __init__(self, refer: S3PRefer, plugin: S3PPlugin, restrictions: S3PPluginRestrictions, web_driver: WebDriver):
+        super().__init__(refer, plugin, restrictions)
 
         # Тут должны быть инициализированы свойства, характерные для этого парсера. Например: WebDriver
         self._driver = web_driver
@@ -151,7 +152,13 @@ class W3C(S3PParserBase):
                 loaded=None,
             )
 
-            self._find(spp_doc)
+            try:
+                self._find(spp_doc)
+            except S3PPluginParserOutOfRestrictionException as e:
+                if e.restriction == FROM_DATE:
+                    self.logger.debug(f'Document is out of date range `{self._restriction.from_date}`')
+                    raise S3PPluginParserFinish(self._plugin,
+                                                f'Document is out of date range `{self._restriction.from_date}`', e)
 
             self._driver.close()
             self._driver.switch_to.window(self._driver.window_handles[0])
